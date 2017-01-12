@@ -103,7 +103,7 @@ re2postfix(char *re) {
 	  {
 		--natom;
 		*dst++ = '.';
-	  }		printf("default: %d\n",*re);	
+	  }			
 
 	  *dst++ = *re; 	// store literal into buf
 	  ++natom;	// increment the number of atoms
@@ -790,13 +790,29 @@ char decode(char c) {
 	}
 }
 
+//converts a queue to a string
+char *Q2String(QueueC *Q) {
+
+	char *str = malloc(sizeof(char)*Q->size);
+	Listc *data;
+	int  i=0;
+
+	for(data = Q->head; data; data = data->next) 
+		str[i++] = data->c;
+
+	//append the null character to indicate the end of string
+	str[i]=0; 
+
+	return str;
+}
+
 char *scanForCharClass(char *regex) {
 
 	int i;
 	QueueC *Q = malloc(sizeof(QueueC));
 	Q->size = 0;
 	int done=0;
-printf("strlen = %d \n",(int)strlen(regex));
+
   for(i=0; i<strlen(regex); i++) {
 
 	if(regex[i++] == '[' && !(done)) {
@@ -805,7 +821,7 @@ printf("strlen = %d \n",(int)strlen(regex));
 				   char k = regex[i];
 			  if(regex[++i] == '-') {
 				  if(isCharacterClass(regex[++i]) && regex[i+1] ==']' )
-					{ printf("inner loop %d c = %d\n",i,regex[i]);
+					{ 
 						char j = regex[i]; 
 						if(j<k) { j=k; k=regex[i];}
 						i +=2; //since strlen("[x-y]") = 5
@@ -827,22 +843,12 @@ printf("strlen = %d \n",(int)strlen(regex));
 				--i; 
 				done = 0;
 			}	
-			else {printf("H i = %d c = %d\n",i,regex[i]); Q = enqueueC(regex[i],Q);} // otherwise enqueue...	
+			else  Q = enqueueC(regex[i],Q); // otherwise enqueue...	
 	}
 
-	/*//reconstruct the regex
-	char *regx = malloc(sizeof(char)*Q->size);
-	
-	for(i=0; i<Q->size; i++) regx[i] = dequeueC(Q);
+	// return the string representation of Q
 
-	//finally... return string
-	return regx; */
-
-	// recreate the regular expression
-	char *regx = malloc(sizeof(char)*Q->size);
-	i = 0; Listc *data;
-	for(data = Q->head; data; data = data->next) {printf("Class char ... %d\n",data->c);regx[i++] = data->c;} //regx[i++] = data->c; 
-	return regx;
+	return Q2String(Q);
 }
 
 char *scanForEscapeChar(char *regex) {
@@ -855,31 +861,20 @@ char *scanForEscapeChar(char *regex) {
 	
 			if(regex[i] == ESCAPE) { 
 				 Q = enqueueC(encode(regex[++i]),Q);  // escaping meta characters
-				 printf("Escape Equeued...%c\n",regex[i]);
 			}
 			
-			else { printf("enqueing....%c\n",regex[i]); Q = enqueueC(regex[i],Q);}
+			else  Q = enqueueC(regex[i],Q);
 	}
 
-	/*//reconstruct the regex
-	char *regx = malloc(sizeof(char)*Q->size); printf()
-	
-	for(i=0; i<Q->size; i++) regx[i] = dequeueC(Q);
-
-	//finally... return regex
-	return regx;*/
-
-		// recreate the regular expression
-	char *regx = malloc(sizeof(char)*Q->size);
-	i = 0; Listc *data;
-	for(data = Q->head; data; data = data->next) regx[i++] = data->c; //printf("returning PreRegex...\n");
-	return regx;
+	//return the string representation of Q
+	return Q2String(Q);
 }
+
 
 char *scanForAnyChar(char *regex) {
 	int i;
 	QueueC *Q = malloc(sizeof(QueueC)); Q->size = 0;
-printf("string length is: %d\n",(int)strlen(regex));
+
 	for(i=0; i<strlen(regex); i++) {
 	 	if(regex[i] == ANYCHAR) {
 			char k = '!'; 
@@ -890,22 +885,11 @@ printf("string length is: %d\n",(int)strlen(regex));
 			}
 			enqueueC(')',Q);
 		}
-		else {printf("Any Enq: %d\n",regex[i]); Q = enqueueC(regex[i],Q);}
+		else  Q = enqueueC(regex[i],Q);
 	}
 
- /*//reconstruct the regex
-	char *regx = malloc(sizeof(char)*Q->size);
-	
-	for(i=0; i<Q->size; i++) regx[i] = dequeueC(Q);
-
-	//finally... return regex
-	return regx; */
-
-		// recreate the regular expression
-	char *regx = malloc(sizeof(char)*Q->size);
-	i = 0; Listc *data;
-	for(data = Q->head; data; data = data->next) {printf("Any char ... %d\n",data->c);regx[i++] = data->c;} 
-	return regx;
+ //return the string represention of Q
+	return Q2String(Q);
 }
 
 
@@ -925,19 +909,10 @@ char *preRegex(char *regex) {
 
 int main() {
 
-	//char *s = "(abu|aa|(bck)*|(yto))*";
-//	char *regex = "0[7-8][0-1][0-9]*|090[0-9]*";
  char *regex = "#([0-1]*#)";
-//char *trim = trimSpace(regex);
-//char *h = preRegex(regex); printf("reREgex::\n %s\n",h);
-// h = re2postfix(h); printf("Postf::\n %s\n",h);
+
 int i=0;
-//char *esc = scanForEscapeChar(regex); //printf("Escape Char: %s\n",esc);
-//esc = scanForCharClass(esc);	//printf("Char class: %s\n",esc);
-//esc = scanForAnyChar(esc); 	//printf("Any Char: %s\n",esc);
-//Setc *Characters = getChar(regex);  // A set of characters for the NFA
- //Listc *tmp = Characters->elements;
- //for(; tmp; tmp=tmp->next) printf("char;;;;;;;;%c\n",tmp->c); 
+
 char *pp = preRegex(regex); //printf("Preprocessed regex: %s\n",pp); 
 Setc *charSet = getAlphabets(regex);
 DFA *newDFA = subSetCon(rex2nfa(re2postfix(pp)),charSet);
@@ -945,17 +920,6 @@ DFA *newDFA = subSetCon(rex2nfa(re2postfix(pp)),charSet);
 char input[256];
 Set *state = NULL;
 
-
-//char *h = "?";
-//char *hh = preRegex(h);
-//printf("h==> %s \n hh ==> %s \n old ==> %s\n",h,hh,regex);
-//state = d(newDFA->start,input[i],newDFA); printf("input char = %d\n",input[i]);
-/*printf("printing set of accepting state:\n");
-printSets(newDFA->A);
-printSet(newDFA->start);
-printSet(state);
-printSets(newDFA->D);
-printTransitionTable(newDFA->table); */
 printf("Starting Shell...\n");
 while(1) {
 	printf(">> ");
@@ -978,6 +942,27 @@ while(1) {
 	else if(strcmp(input,"EXIT") == 0)
 	  break;
 	else if(strcmp(input,"PRINT_R") == 0) printf("%s\n",regex);
+	else if(strcmp(input,"HELP") == 0) {
+		printf("****************************HELP SCREEN*******************************\n\n");
+		printf("**************Shell Commands***************\n");
+		printf("HELP ........... displays this help screen\n");
+		printf("PRINT_R ........ prints the current regular expression \n");
+		printf("PRINT_A ........ prints the alphabetic characters of current regex\n");
+		printf("PRINT_P ........ prints the filters for this regular expression\n");
+		printf("REGEX .......... enter new Regular expression\n");
+		printf("*************************End of Shell Commands*************************\n\n");
+
+		printf("**************Regular Expression Language***************\n");
+		printf("# ........... Escape character\n");
+		printf("* ........... Matches zero or more of previous character (Kleen closure)\n");
+		printf("? ........... Matches any (printable) character\n");
+		printf("| ........... The OR (or Alternation) operator\n");
+		printf(". ........... The dot (or AND or Concatenation) operator\n");
+		printf("[] .......... The character class operator e.g [a-z], [0-9] etc\n");
+		printf("*************************End of Regular Expression Language*************************\n\n");
+
+		printf("****************************END OF HELP SCREEN*******************************\n");
+	}
 	else if(strcmp(input,"PRINT_P") == 0) {
 		char *esc = scanForEscapeChar(regex); printf("PASS ESCAPE Char: %s\n",esc);
 		esc = scanForCharClass(esc);	printf("PASS CHAR CLASS: %s\n",esc);
