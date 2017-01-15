@@ -18,6 +18,8 @@
 #define ZERO_OR_MORE 42
 #define CLOSE_PAREN 41
 #define OPEN_PAREN 40
+#define START_CHAR_CLASS 91
+#define END_CHAR_CLASS   93
 #define OR 124
 #define AND 46
 #define ESCAPE 35

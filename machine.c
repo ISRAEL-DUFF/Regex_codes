@@ -18,7 +18,7 @@ State *createState(char *c,int type) {
 		case literal:
 			s = (State*)malloc(sizeof(State));
 			ns = (State*)malloc(sizeof(State));
-			s->c = decode(*c);
+			s->c = decode(*c); //printf("Decoded :%c\n",decode(*c));
 			ns->c = accept;
 			ns->nextState = NULL;
 			s->nextState = ns;
@@ -104,7 +104,7 @@ re2postfix(char *re) {
 		--natom;
 		*dst++ = '.';
 	  }			
-
+	  		//printf("Default: %d\n",*re);
 	  *dst++ = *re; 	// store literal into buf
 	  ++natom;	// increment the number of atoms
 	  break;	// we are done with literals
@@ -235,7 +235,7 @@ State *rex2nfa(char *rex) {
 			break;
 
 		   default:
-			push(createState(&rex[i],literal));
+			push(createState(&rex[i],literal)); //printf("Def: %d\n",rex[i]);
 			break;
 		}
 	}
@@ -750,6 +750,12 @@ char encode(char c) {
 	/*case '#':
 	   return 17;
 	  break; */
+	 case '[':
+	 	return 20;
+	 	break;
+	 case ']':
+	 	return 21;
+	 	break;
 	default:
 	return c;
 	break;
@@ -786,6 +792,12 @@ char decode(char c) {
 		/* case 17:
 		 return ESCAPE;
 		 break; */
+		 case 20:
+		 return START_CHAR_CLASS;
+		 break;
+		 case 21:
+		   return END_CHAR_CLASS;
+		   break;
 
 	}
 }
@@ -909,7 +921,7 @@ char *preRegex(char *regex) {
 
 int main() {
 
- char *regex = "#([0-1]*#)";
+ char *regex = "r[0-9][0-9]*";
 
 int i=0;
 
@@ -923,7 +935,7 @@ Set *state = NULL;
 printf("Starting Shell...\n");
 while(1) {
 	printf(">> ");
-	scanf("%s",input);
+	fscanf(stdin,"%s",input);
 
 	if(strcmp(input,"REGEX") == 0) {
 		//free((void*)regex);
@@ -976,13 +988,13 @@ while(1) {
 	else {
 	state = d(newDFA->start,input[i],newDFA);
 	do {
-		if(state == NULL) {printf("Rejected \n"); break;}
+		if(state == NULL) {printf("%s : Rejected \n",input); break;}
 		if(exists2(state,newDFA->A)) {
 			if(i==(strlen(input)-1))
-				printf("Accepted\n");
+				printf("%s : Accepted\n",input);
 		//	else {printf("Rejected\n"); break;}
 		}
-		else if(state && i==(strlen(input)-1)) {printf("Rejected\n"); break;}
+		else if(state && i==(strlen(input)-1)) {printf("%s : Rejected\n",input); break;}
 			if(++i < strlen(input))
 			state = d(state,input[i],newDFA);
 	} while(i<strlen(input));
